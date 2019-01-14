@@ -1,11 +1,12 @@
 import setuptools
+from checkout2 import name, version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="checkout-psp-client",
-    version="0.0.1",
+    name=name,
+    version=version,
     author="Antti-Juhani Kaijanaho",
     author_email="antti-juhani@kaijanaho.fi",
     description="Wrapper for the Checkout Finland Payment Service API",
@@ -14,7 +15,7 @@ setuptools.setup(
     url="https://github.com/ajkaijanaho/checkout-psp-client",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",

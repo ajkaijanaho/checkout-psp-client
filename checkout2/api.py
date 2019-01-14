@@ -1,3 +1,24 @@
+# Copyright © 2019 Antti-Juhani Kaijanaho
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""This is a private module.  Do not import directly unless you have to."""
+
 import hmac
 import logging
 import json
@@ -30,11 +51,13 @@ def signature_payload(headers, body = None):
     response into a payload string.  This function does that.
 
     Args:
-      headers: A dictionary of headers in the message (must include all checkout- headers, others optional)
+      headers: A dictionary of headers in the message (must include
+          all checkout- headers, others optional)
       body: (optional) A bytes object containing the body to be sent
 
     Returns:
       A string object ready for signature computation.
+
     """
 
     hs = []
@@ -80,6 +103,12 @@ class PaymentRequest:
                  language = "FI"):
         """Creates a payment request.
 
+        IMPORTANT: You MUST verify the redirect_success and
+        redirect_cancel requests using CheckoutAPI.is_response_ok (use
+        the query string as the source of the "headers").  If this
+        returns false, you MUST disregard the request as forged (and
+        maybe log it).
+
         Args:
             reference: The merchant's reference for this order (string)
             redirect_success: URL to redirect to on success (string)
@@ -90,6 +119,7 @@ class PaymentRequest:
             phone: Customer phone number (string, optional)
             vat_id: Customer's EU VAT number (string, optional)
             language: Payment language, one of FI, SV, or EN (string)
+
         """
 
         self._items = []
@@ -113,6 +143,14 @@ class PaymentRequest:
                                         "cancel": redirect_cancel } }
 
     def add_callback_urls(success, cancel):
+        """Add callback URLs for success and cancellation.
+
+        IMPORTANT: You MUST verify the requests using
+        CheckoutAPI.is_response_ok (use the query string as the source
+        of the "headers").  If this returns false, you MUST disregard
+        the request as forged (and maybe log it).
+        """
+
         self._obj["callbackUrls"] = { "success": success,
                                       "cancel": cancel }
 
@@ -200,11 +238,13 @@ class CheckoutAPI:
 
         Args:
             algorithm: The name of the signature algorithm to be used
-            headers: A dictionary of headers in the message (must include all checkout- headers, others optional)
-            body: (optional) A bytes object containing the body to be sent            msg: The message (request or response) to be signed
+            headers: A dictionary of headers in the message (must
+                include all checkout- headers, others optional)
+            body: (optional) A bytes object containing the body to be sent
 
         Returns:
             The HMAC signature computed.
+
         """
 
         return hmac.new(self.secret_key.encode(),
@@ -272,6 +312,11 @@ class CheckoutAPI:
             headers["checkout-transaction-id"] = transaction_id
 
         with Session() as s:
+            from checkout2 import name, version
+            s.headers["User-Agent"] = "{}/{} ({})".\
+                                      format(name,
+                                             version,
+                                             s.headers["User-Agent"])
             req = Request(method,
                           urljoin(self.api_endpoint, path),
                           headers = headers,
@@ -319,6 +364,20 @@ class CheckoutAPI:
                                  method = "GET")
 
     def create_payment(self, payment_request):
+        """Creates a payment in the service.
+
+        Args:
+            payment_request: A properly filled PaymentRequest object.
+
+        Returns:
+            A CheckoutResponse object
+
+        Raises:
+            ProviderError: The request failed with a 4xx or 5xx error code
+            ResponseSignatureError: The request appeared to succeed
+                but contained an invalid signature.
+        """
+
         return self.send_request("/payments",
                                  data = payment_request.jsonable,
                                  method = "POST")
