@@ -312,10 +312,10 @@ class CheckoutAPI:
             headers["checkout-transaction-id"] = transaction_id
 
         with Session() as s:
-            from checkout2 import name, version
+            from .version import __name__, __version__
             s.headers["User-Agent"] = "{}/{} ({})".\
-                                      format(name,
-                                             version,
+                                      format(__name__,
+                                             __version__,
                                              s.headers["User-Agent"])
             req = Request(method,
                           urljoin(self.api_endpoint, path),
