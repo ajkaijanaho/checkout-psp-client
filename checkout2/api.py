@@ -142,7 +142,7 @@ class PaymentRequest:
                       "redirectUrls": { "success": redirect_success,
                                         "cancel": redirect_cancel } }
 
-    def add_callback_urls(success, cancel):
+    def add_callback_urls(self, success, cancel):
         """Add callback URLs for success and cancellation.
 
         IMPORTANT: You MUST verify the requests using
