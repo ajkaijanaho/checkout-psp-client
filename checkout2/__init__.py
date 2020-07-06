@@ -18,9 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-name = "checkout-psp-client"
-version = "0.0.1"
-
 from checkout2.api import (Error, ResponseSignatureError, ProviderError,
                            CheckoutResponse, PaymentRequest,
                            CheckoutAPI)
